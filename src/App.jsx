@@ -80,42 +80,71 @@ function App() {
     setError('');
 
     try {
-      console.log("Starting IDM-VTON generation...");
+      console.log("Starting generation...");
       
-      const dataURLToBlob = async (dataUrl) => {
-        return await (await fetch(dataUrl)).blob();
-      };
-
-      const userBlob = await dataURLToBlob(userPhoto);
-      const clothingBlob = await dataURLToBlob(clothingPhoto);
-
-      // Connect to the popular free IDM-VTON space on Hugging Face
-      const app = await client("yisol/IDM-VTON");
+      // Step 1: Use Gemini 2.5 Flash to analyze the images and generate a photorealistic prompt
+      const apiKey = 'AIzaSyBGr0ehbhwm8Y4GHEJ2HcyYruL1Ko73-tE';
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      
+      const getBase64Data = (dataUrl) => dataUrl.split(',')[1];
       
       let finalDescription = clothingDescription;
       if (clothingFormat === 'material') {
         finalDescription = `A ${clothingStyle}` + (clothingDescription ? ` with ${clothingDescription}` : "");
       }
 
-      const result = await app.predict("/tryon", [
-        { "background": userBlob, "layers": [], "composite": null }, // Human image with auto-masking
-        clothingBlob, // Garment image
-        finalDescription || "Sleeve Round Neck T-shirts", // Description helps condition the model
-        true, // Use auto-generated mask
-        false, // Do not auto-crop
-        30, // Denoising steps
-        42, // Seed
-      ]);
+      const payload = {
+        contents: [{
+          parts: [
+            { text: `You are an expert fashion AI. I have provided an image of a person and an image of a garment. Analyze the person's physical appearance (face, skin tone, hair, body type) and the garment's precise design, color, pattern, and texture. 
+                    Create a highly descriptive, photorealistic text-to-image prompt of THIS exact person wearing THIS exact garment in a professional fashion photography studio setting. 
+                    Include this specific clothing context: ${finalDescription || 'The clothing provided.'}
+                    Only output the final prompt text, nothing else.` },
+            { inline_data: { mime_type: 'image/jpeg', data: getBase64Data(userPhoto) } },
+            { inline_data: { mime_type: 'image/jpeg', data: getBase64Data(clothingPhoto) } }
+          ]
+        }]
+      };
 
-      console.log("Generation complete:", result.data);
+      try {
+        // Try Gemini to get a prompt
+        const response = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        let prompt = `Photorealistic fashion portrait of a person wearing a beautiful ${finalDescription}, professional studio lighting, 8k resolution, highly detailed`;
+        
+        if (data.candidates && data.candidates[0] && data.candidates[0].content.parts[0].text) {
+           prompt = data.candidates[0].content.parts[0].text.trim();
+           console.log("Gemini Prompt:", prompt);
+        } else {
+           console.log("Gemini failed to generate a complex prompt, using fallback prompt.");
+        }
 
-      if (result.data && result.data.length > 0 && result.data[0].url) {
-        setResultImage(result.data[0].url);
-      } else {
-        throw new Error("AI completed but returned no valid image url.");
+        // Step 2: Generate the image using Pollinations.ai (Free, unbounded generation)
+        const seed = Math.floor(Math.random() * 1000000);
+        const encodedPrompt = encodeURIComponent(`${prompt}, photorealistic, masterpiece, highly detailed face, 8k`);
+        const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${seed}&width=768&height=1024&nologo=true`;
+        
+        // Pre-load the image to ensure it's ready
+        const img = new Image();
+        img.src = pollinationsUrl;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error("Failed to load generated image"));
+        });
+
+        setResultImage(pollinationsUrl);
+
+      } catch (geminiErr) {
+        throw new Error("AI service error: " + geminiErr.message);
       }
+
     } catch (err) {
-      setError(`Generation failed: ${err.message}. The free server might be busy, please try again.`);
+      setError(`Generation failed: ${err.message}. Please try again.`);
       console.error('API Error:', err);
     } finally {
       setIsGenerating(false);
