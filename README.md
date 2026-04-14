@@ -19,8 +19,8 @@ Welcome to the **Babu Bridal Corner** Virtual Try-On implementation! This projec
 - **Frontend Framework**: React 19 + Vite 6
 - **Styling**: Vanilla CSS with CSS Variables for consistent theming and micro-animations.
 - **AI Integration**: 
-  - **Google Gemini 2.5 Flash**: For image analysis and prompt generation.
-  - **Pollinations.ai**: For photorealistic image generation.
+  - **Google Gemini 1.5 Flash**: For precise image analysis and context-aware prompt generation.
+  - **IDM-VTON (via @gradio/client)**: For high-fidelity, identity-preserving virtual try-on that accurately maps garments to the user's pose.
 - **Tooling**: ESLint, Node.js
 
 ## 💻 Getting Started
