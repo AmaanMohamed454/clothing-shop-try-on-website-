@@ -1,10 +1,14 @@
+# clothing-shop-try-on-website-
+
+This website generates images that show how you would look wearing the choice of your clothing. Simply upload your image and a clothing image, and provide details about the garment. It will generate a high-quality, photorealistic image of you wearing that piece of clothing.
+
 # Babu Bridal Corner - Virtual Try-On Experience
 
 Welcome to the **Babu Bridal Corner** Virtual Try-On implementation! This project showcases a modern, AI-powered web application that allows users to digitally "try on" clothing—whether it's a ready-made outfit or unstitched material—using state-of-the-art Generative AI models.
 
 ## ✨ Features
 
-- **Virtual Try-On (VTON) AI**: Integrates with Hugging Face Inference API (`yisol/IDM-VTON` model) utilizing `@gradio/client` for seamless and high-fidelity clothing transfer.
+- **AI-Powered Virtual Try-On**: Utilizes Google Gemini to analyze user poses and garment details, combined with Pollinations.ai for high-fidelity image synthesis.
 - **Support for Unstitched Materials**: Users can upload raw fabric or unstitched materials and specify what custom outfit they want it stitched into (e.g., Kurti, Dress, Saree, Lehenga, Blouse, Salwar Kameez).
 - **Responsive & Premium UI**: Built with React and Vanilla CSS, offering a luxury editorial aesthetic suited for a bridal boutique.
 - **Drag-and-Drop Image Upload**: Intuitive, easy-to-use image upload zones for both user portrait and clothing item.
@@ -14,7 +18,9 @@ Welcome to the **Babu Bridal Corner** Virtual Try-On implementation! This projec
 
 - **Frontend Framework**: React 19 + Vite 6
 - **Styling**: Vanilla CSS with CSS Variables for consistent theming and micro-animations.
-- **AI Integration**: `@gradio/client` to execute remote AI inference requests.
+- **AI Integration**: 
+  - **Google Gemini 2.5 Flash**: For image analysis and prompt generation.
+  - **Pollinations.ai**: For photorealistic image generation.
 - **Tooling**: ESLint, Node.js
 
 ## 💻 Getting Started
@@ -25,10 +31,10 @@ Ensure you have [Node.js](https://nodejs.org/) (v16.x or later) installed.
 
 ### Installation
 
-1. **Clone the repository** (if you haven't already):
+1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/babu-bridal-corner.git
-   cd babu-bridal-corner
+   git clone https://github.com/AmaanMohamed454/clothing-shop-try-on-website-.git
+   cd clothing-shop-try-on-website-
    ```
 
 2. **Install dependencies**:
@@ -49,8 +55,8 @@ Ensure you have [Node.js](https://nodejs.org/) (v16.x or later) installed.
 1. **Upload Your Photo**: Provide a clear, well-lit, front-facing picture of the user.
 2. **Upload the Garment**: Provide an image of the clothing (can be a flat-lay, worn by a mannequin, or a fabric swatch).
 3. **Configure Options**: Choose between *Ready-made* or *Unstitched*. Provide optional descriptors for the AI to understand the garment context.
-4. **Generate**: Click the generate button to ping the AI model that accurately masks the user and synthesizes the garment onto their body, maintaining pose and respecting the fabric's drape and texture.
+4. **Generate**: Click the generate button. The AI analyzes the person and the garment to create a custom prompt, which is then used to synthesize a realistic image of the person wearing the outfit.
 
 ## 📝 License
 
-This project is created as a showcase of integrating advanced Generative AI with intuitive web interfaces. Feel free to use this as an inspiration for similar retail augmented reality (AR) / AI applications.
+This project is created as a showcase of integrating advanced Generative AI with intuitive web interfaces.
