@@ -374,10 +374,9 @@ function App() {
             Your premium destination for bridal wear, now with an integrated virtual try-on experience.
           </p>
           <div className="footer-links">
-            <a href="#" className="footer-link">Instagram</a>
-            <a href="#" className="footer-link">WhatsApp</a>
-            <a href="#" className="footer-link">Book Appointment</a>
-            <a href="#" className="footer-link">Contact Us</a>
+            <a href="https://www.instagram.com/babubridalcorner?igsh=MTV5c2Fsbmp6azIyeg==" target="_blank" rel="noopener noreferrer" className="footer-link">Instagram</a>
+            <a href="https://wa.me/919067550535" target="_blank" rel="noopener noreferrer" className="footer-link">Book Appointment</a>
+            <a href="tel:+919067550535" className="footer-link">Contact Us</a>
           </div>
           <div className="copyright">
             &copy; {new Date().getFullYear()} Babu Bridal Corner. All rights reserved.
