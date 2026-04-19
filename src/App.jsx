@@ -146,26 +146,56 @@ function App() {
         document.getElementById('result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
 
-      // Step 2: Instant generation via Pollinations without queue waiting
-      const finalPrompt = encodeURIComponent(vtonPrompt + ", highly detailed, 8k resolution, photorealistic fashion photography, stunning quality");
-      // Appending a random cache-buster to ensure it updates instead of serving cached
-      const pollinationsUrl = `https://image.pollinations.ai/prompt/${finalPrompt}?width=800&height=1066&nologo=true&enhance=false&seed=${Math.floor(Math.random() * 1000000)}`;
-      
-      await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          setResultImage(pollinationsUrl);
-          setGenerationType('exact');
-          resolve();
-        };
-        img.onerror = () => {
-          reject(new Error("Failed to load generated image from AI service."));
-        };
-        img.src = pollinationsUrl;
-      });
+      // Step 2: High-Precision IDM-VTON with Automated Queue Waiting (max 2 minutes)
+      let generatedImageUrl = null;
+      let attempts = 0;
+      const maxAttempts = 24; // 24 attempts * 5 seconds = 120 seconds (2 mins)
+
+      while (attempts < maxAttempts && !generatedImageUrl) {
+        try {
+          console.log(`Attempt ${attempts + 1} of ${maxAttempts} to secure IDM-VTON slot...`);
+          const app = await client("yisol/IDM-VTON");
+          
+          const userBlob = await (await fetch(userPhoto)).blob();
+          const clothingBlob = await (await fetch(clothingPhoto)).blob();
+          
+          const result = await app.predict("/tryon", [
+            { "background": userBlob, "layers": [], "composite": userBlob },
+            clothingBlob,
+            vtonPrompt,
+            true,
+            false,
+            30, // Denoise steps
+            Math.floor(Math.random() * 100000)
+          ]);
+
+          if (result.data && result.data[0]) {
+            generatedImageUrl = result.data[0].url;
+            console.log("Success with IDM-VTON!", generatedImageUrl);
+          }
+        } catch (vtonErr) {
+          console.warn(`Queue full or server busy. Retrying in 5s... (${vtonErr.message})`);
+        }
+
+        if (!generatedImageUrl) {
+          attempts++;
+          if (attempts >= maxAttempts) {
+             throw new Error("STILL_BUSY_TIMEOUT");
+          }
+          // Wait 5 seconds before retrying
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+      }
+
+      setResultImage(generatedImageUrl);
+      setGenerationType('exact');
 
     } catch (err) {
-      setError(`We encountered a temporary connection issue. Please refresh and try again.`);
+      if (err.message === "STILL_BUSY_TIMEOUT") {
+        setError(`The AI visual servers are experiencing extreme peak traffic right now. We queued for 2 minutes but couldn't secure a slot. Please wait a perfectly brief moment and attempt again!`);
+      } else {
+        setError(`We encountered a temporary connection issue during the generation pipeline. Please ensure your images are valid and try again.`);
+      }
       console.error('Final Generation Error:', err);
     } finally {
       setIsGenerating(false);
@@ -308,7 +338,7 @@ function App() {
             style={{ padding: '1.2rem 4rem', fontSize: '1.2rem' }}
           >
             {isGenerating ? (
-              <><span className="loading-spinner"></span> Generating Magic...</>
+              <><span className="loading-spinner"></span> Queueing & Tailoring... (up to 2m)</>
             ) : (
               'Generate Try-On'
             )}
@@ -320,17 +350,17 @@ function App() {
           <div className="result-section" id="result">
             <div style={{ marginBottom: '1rem' }}>
               <span style={{ backgroundColor: '#e8f5e9', color: '#2e7d32', padding: '5px 15px', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 'bold', border: '1px solid #2e7d32' }}>
-                ✨ High-Speed AI Recreation
+                ✨ Exact Match (Identity Preserved)
               </span>
             </div>
             <h2>Your Virtual Try-On</h2>
-            <p>This AI-generated image shows how the outfit looks based on your facial features and pose.</p>
+            <p>This is exactly how the outfit will look on you, perfectly preserving your unique features and pose.</p>
 
             <div className="result-image-wrapper">
               {isGenerating && !resultImage ? (
                 <div style={{ width: '100%', height: '600px', backgroundColor: 'var(--color-bg-subtle)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'pulseGold 2s infinite' }}>
                   <div className="loading-spinner" style={{ width: '40px', height: '40px', borderColor: 'rgba(212, 175, 55, 0.3)', borderTopColor: 'var(--color-gold)' }}></div>
-                  <p style={{ marginTop: '1rem', color: 'var(--color-gold-dark)', fontWeight: 'bold' }}>Tailoring Your Look...</p>
+                  <p style={{ marginTop: '1rem', color: 'var(--color-gold-dark)', fontWeight: 'bold' }}>Securing Server Slot & Generating (~1-2m)...</p>
                 </div>
               ) : (
                 <img src={resultImage} alt="Virtual Try-On Result" style={{ width: '100%', display: 'block', animation: 'fadeIn 0.5s ease-out' }} />
