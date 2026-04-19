@@ -164,7 +164,8 @@ img {
   animation: fadeIn 0.8s ease-out 0.4s both;
   box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   margin: 0 auto;
   align-items: center;
   justify-content: center;
