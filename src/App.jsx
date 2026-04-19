@@ -129,7 +129,7 @@ function App() {
         }]
       };
 
-      let vtonPrompt = `A beautiful ${finalDescription || 'outfit'}`;
+      let vtonPrompt = 'A beautiful fashion portrait';
       try {
         const response = await fetch(geminiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         const data = await response.json();
