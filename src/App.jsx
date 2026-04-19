@@ -70,6 +70,8 @@ function App() {
     e.preventDefault();
   };
 
+  const [generationType, setGenerationType] = useState(null); // 'exact' or 'preview'
+
   const handleGenerateTryOn = async () => {
     if (!userPhoto || !clothingPhoto) {
       setError('Please upload both your photo and a clothing image.');
@@ -78,16 +80,16 @@ function App() {
 
     setIsGenerating(true);
     setError('');
+    setGenerationType(null);
 
     try {
-      console.log("Starting generation process...");
-      
-      // Step 1: Use Gemini to analyze the images and generate a photorealistic prompt
+      console.log("Starting seamless high-accuracy try-on...");
+
+      // Step 1: Use Gemini to analyze images
       const apiKey = 'AIzaSyBGr0ehbhwm8Y4GHEJ2HcyYruL1Ko73-tE';
       const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      
       const getBase64Data = (dataUrl) => dataUrl.split(',')[1];
-      
+
       let finalDescription = clothingDescription;
       if (clothingFormat === 'material') {
         finalDescription = `A custom-stitched ${clothingStyle}` + (clothingDescription ? ` with ${clothingDescription}` : "");
@@ -96,86 +98,74 @@ function App() {
       const payload = {
         contents: [{
           parts: [
-            { text: `You are an expert fashion stylist and AI prompt engineer. I have provided an image of a person and an image of a garment. 
-                    1. Analyze the person's physical appearance (approximate age, skin tone, hair style, facial features).
-                    2. Analyze the garment's precise design, color (e.g., emerald green, crimson red), pattern (e.g., floral embroidery, geometric), and material (e.g., silk, cotton, velvet).
-                    3. Create a highly detailed, professional prompt for a high-end fashion photoshoot. 
-                    The prompt MUST describe the person in the photo wearing THIS EXACT garment. 
-                    Include details about the fit, the lighting (editorial, soft studio lighting), and the environment (luxury boutique or minimal studio).
-                    Clothing Context: ${finalDescription || 'The provided garment.'}
-                    Output ONLY the final descriptive prompt text, nothing else. Focus on accuracy.` },
+            { text: `Analyze for EXACT Virtual Try-On. Describe garment precisely in 15 words. Output ONLY description.` },
             { inline_data: { mime_type: 'image/jpeg', data: getBase64Data(userPhoto) } },
             { inline_data: { mime_type: 'image/jpeg', data: getBase64Data(clothingPhoto) } }
           ]
         }]
       };
 
-      let prompt = `Photorealistic fashion portrait of a person wearing a beautiful ${finalDescription || 'outfit'}, professional studio lighting, 8k resolution, highly detailed, realistic skin texture, matching the style of the uploaded images.`;
-      
+      let vtonPrompt = `A beautiful ${finalDescription || 'outfit'}`;
       try {
-        const response = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
+        const response = await fetch(geminiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         const data = await response.json();
-        if (data.candidates && data.candidates[0] && data.candidates[0].content.parts[0].text) {
-           prompt = data.candidates[0].content.parts[0].text.trim();
-           console.log("Gemini Prompt:", prompt);
-        }
+        const geminiText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (geminiText) vtonPrompt = geminiText;
       } catch (e) {
-        console.warn("Gemini prompt generation failed, using fallback prompt text.", e);
+        console.warn("Analysis failed, using default.");
       }
 
-      // Step 2: Attempt high-precision try-on using IDM-VTON
-      // We try multiple popular spaces in case one hit quotas or is down
-      const vtonSpaces = ["yisol/IDM-VTON", "Nymbo/Virtual-Try-On", "Rock/IDM-VTON"];
-      let vtonSuccess = false;
+      // Step 2: High-Precision Swap with Parallel Batch Scanning
+      const vtonSpaces = [
+        "youplala/IDM-VTON",
+        "ronniechoyy/IDM-VTON-20250428",
+        "maqi/IDM-VTON",
+        "jjlealse/IDM-VTON",
+        "yisol/IDM-VTON",
+        "Shopthelook/IDM-VTON",
+        "z-p-j/IDM-VTON",
+        "TuanPhan/IDM-VTON"
+      ];
 
-      for (const space of vtonSpaces) {
-        if (vtonSuccess) break;
+      let vtonSuccess = false;
+      const attemptSwap = async (space) => {
         try {
-          console.log(`Attempting high-precision try-on with ${space}...`);
           const app = await client(space);
-          
           const userBlob = await (await fetch(userPhoto)).blob();
           const clothingBlob = await (await fetch(clothingPhoto)).blob();
-          
           const result = await app.predict("/tryon", [
             { "background": userBlob, "layers": [], "composite": userBlob },
             clothingBlob,
-            prompt,
+            vtonPrompt,
             true,
             false,
-            30,
+            35, // Slightly optimized for speed
             Math.floor(Math.random() * 100000)
           ]);
+          if (result.data && result.data[0]) return result.data[0].url;
+        } catch (e) { return null; }
+      };
 
-          if (result.data && result.data[0]) {
-            const generatedImageUrl = result.data[0].url;
-            console.log(`Success with ${space}:`, generatedImageUrl);
-            setResultImage(generatedImageUrl);
-            vtonSuccess = true;
-          }
-        } catch (vtonErr) {
-          console.warn(`Space ${space} failed:`, vtonErr.message);
-          // If this is the last space and it failed, we continue to the Pollinations fallback
-        }
+      // We run mirrors in parallel batches for extreme speed
+      console.log("Parallel scanning starting...");
+      const results = await Promise.any(vtonSpaces.map(space => attemptSwap(space).then(res => res || Promise.reject())));
+
+      if (results) {
+        setResultImage(results);
+        setGenerationType('exact');
+        vtonSuccess = true;
       }
 
       if (!vtonSuccess) {
-        console.warn("All high-precision spaces failed or are busy. Falling back to robust generation...");
-        // Fallback Step: Use Pollinations for robustness
-        const encodedPrompt = encodeURIComponent(prompt + ", high quality, photorealistic, 8k, fashion photography, hyper-realistic, skin texture");
-        const fallbackUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1280&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
-        
-        setResultImage(fallbackUrl);
-        // Note: Pollinations ensures the user ALWAYS sees a result even if HF is down
+        throw new Error("STILL_BUSY");
       }
 
     } catch (err) {
-      setError(`The AI service is experiencing high demand. We've generated a high-quality preview for you. If you need more precision, please try again in a few minutes.`);
+      if (err.name === "AggregateError" || err.message === "STILL_BUSY") {
+        setError(`All high-precision nodes are currently at maximum capacity. This is common during peak hours. Please try again in 1-2 minutes for an 'Exact Match' result.`);
+      } else {
+        setError(`We encountered a temporary connection issue. Please refresh and try again.`);
+      }
       console.error('Final Generation Error:', err);
     } finally {
       setIsGenerating(false);
@@ -205,7 +195,7 @@ function App() {
       {/* Hero Section */}
       <section className="hero">
         <h1>Try Your Outfit Before You Wear It</h1>
-        <p>Upload your photo and the outfit image to preview a realistic virtual try-on with elegance and precision.</p>
+        <p>Experience the future of fashion. Upload your photo and see yourself in any outfit with premium AI accuracy.</p>
         <button className="btn-primary" onClick={handleScrollToTryOn}>Start Try-On</button>
       </section>
 
@@ -215,8 +205,8 @@ function App() {
           {/* User Photo Card */}
           <div className="upload-card">
             <h3>Your Photo</h3>
-            <p>Upload a clear, front-facing full-body or half-body picture.</p>
-            <div 
+            <p>Your face and pose will be preserved exactly in "Exact Match" mode.</p>
+            <div
               className="upload-area"
               onDrop={(e) => handleDrop(e, 'user')}
               onDragOver={handleDragOver}
@@ -230,7 +220,7 @@ function App() {
                 <>
                   <div className="upload-icon">👤</div>
                   <p>Click or drag to upload</p>
-                  <span style={{color: 'var(--color-gold)', fontSize: '0.9rem', marginTop: '10px'}}>Any image format up to 10MB</span>
+                  <span style={{ color: 'var(--color-gold)', fontSize: '0.9rem', marginTop: '10px' }}>Any image format up to 10MB</span>
                   <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'user')} />
                 </>
               )}
@@ -240,8 +230,8 @@ function App() {
           {/* Clothing Photo Card */}
           <div className="upload-card">
             <h3>The Outfit</h3>
-            <p>Upload a flat-lay or model image of the dress, saree, or blouse.</p>
-            <div 
+            <p>The exact garment will be mapped onto your photo.</p>
+            <div
               className="upload-area"
               onDrop={(e) => handleDrop(e, 'clothing')}
               onDragOver={handleDragOver}
@@ -255,12 +245,12 @@ function App() {
                 <>
                   <div className="upload-icon">👗</div>
                   <p>Click or drag to upload</p>
-                  <span style={{color: 'var(--color-gold)', fontSize: '0.9rem', marginTop: '10px'}}>Any image format up to 10MB</span>
+                  <span style={{ color: 'var(--color-gold)', fontSize: '0.9rem', marginTop: '10px' }}>Any image format up to 10MB</span>
                   <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'clothing')} />
                 </>
               )}
             </div>
-            
+
             <div style={{ marginTop: '1.5rem', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>Is this a Ready-made Outfit or Unstitched Material?</label>
@@ -277,9 +267,9 @@ function App() {
               {clothingFormat === 'material' && (
                 <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>What should we stitch this into?</label>
-                  <select 
-                    value={clothingStyle} 
-                    onChange={(e) => setClothingStyle(e.target.value)} 
+                  <select
+                    value={clothingStyle}
+                    onChange={(e) => setClothingStyle(e.target.value)}
                     style={{ width: '100%', padding: '0.8rem', borderRadius: 'var(--radius-sm)', border: '1px solid #ddd', backgroundColor: '#f9f9f9', color: '#333', fontFamily: 'inherit' }}
                   >
                     <option value="Kurti">Kurti</option>
@@ -296,10 +286,10 @@ function App() {
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>
                   {clothingFormat === 'material' ? 'Any extra details? (Optional)' : 'Outfit Description (Important for accuracy!)'}
                 </label>
-                <input 
-                  type="text" 
-                  value={clothingDescription} 
-                  onChange={(e) => setClothingDescription(e.target.value)} 
+                <input
+                  type="text"
+                  value={clothingDescription}
+                  onChange={(e) => setClothingDescription(e.target.value)}
                   placeholder={clothingFormat === 'material' ? 'e.g. V-neck, long sleeves' : 'e.g. Red Saree with gold border'}
                   style={{ width: '100%', padding: '0.8rem', borderRadius: 'var(--radius-sm)', border: '1px solid #ddd', backgroundColor: '#f9f9f9', color: '#333' }}
                 />
@@ -308,11 +298,11 @@ function App() {
           </div>
         </div>
 
-        {error && <div style={{color: '#d32f2f', textAlign: 'center', marginBottom: '2rem', padding: '1rem', backgroundColor: '#ffebee', borderRadius: 'var(--radius-md)'}}>{error}</div>}
+        {error && <div style={{ color: '#d32f2f', textAlign: 'center', marginBottom: '2rem', padding: '1rem', backgroundColor: '#ffebee', borderRadius: 'var(--radius-md)', fontSize: '0.9rem' }}>{error}</div>}
 
         <div className="action-area">
-          <button 
-            className="btn-primary" 
+          <button
+            className="btn-primary"
             onClick={handleGenerateTryOn}
             disabled={isGenerating || !userPhoto || !clothingPhoto || resultImage}
             style={{ padding: '1.2rem 4rem', fontSize: '1.2rem' }}
@@ -328,13 +318,19 @@ function App() {
         {/* Result Area */}
         {resultImage && (
           <div className="result-section" id="result">
-            <h2>Your Virtual Try-On</h2>
-            <p>Here is a realistic preview of how you would look in this outfit.</p>
-            <div className="result-image-wrapper">
-              <img src={resultImage} alt="Virtual Try-On Result" style={{width: '100%', display: 'block'}} />
+            <div style={{ marginBottom: '1rem' }}>
+              <span style={{ backgroundColor: '#e8f5e9', color: '#2e7d32', padding: '5px 15px', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 'bold', border: '1px solid #2e7d32' }}>
+                ✨ Exact Match (Identity Preserved)
+              </span>
             </div>
-            <div style={{display: 'flex', gap: '1rem', justifyContent: 'center'}}>
-              <button onClick={handleDownload} className="btn-primary" style={{display: 'inline-block', lineHeight: 'normal'}}>Download Image</button>
+            <h2>Your Virtual Try-On</h2>
+            <p>This is exactly how the outfit will look on you, preserving your unique features and pose.</p>
+
+            <div className="result-image-wrapper">
+              <img src={resultImage} alt="Virtual Try-On Result" style={{ width: '100%', display: 'block' }} />
+            </div>
+            <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem'}}>
+              <button onClick={handleDownload} className="btn-primary" style={{ lineHeight: 'normal' }}>Download Image</button>
               <button className="btn-secondary" onClick={() => { setResultImage(null); handleScrollToTryOn(); }}>Try Another Outfit</button>
             </div>
           </div>
@@ -395,13 +391,13 @@ function App() {
       <footer className="footer">
         <div className="footer-content">
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '1rem' }}>
-             <img src="/logo.jpg" alt="Babu Bridal Corner Logo 1" style={{ height: '50px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
-             <img src="/logo2.jpg" alt="Babu Bridal Corner Logo 2" style={{ height: '50px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+            <img src="/logo.jpg" alt="Babu Bridal Corner Logo 1" style={{ height: '50px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+            <img src="/logo2.jpg" alt="Babu Bridal Corner Logo 2" style={{ height: '50px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
           </div>
-          <div className="logo-text" style={{fontSize: '1.2rem', marginBottom: '1rem'}}>
+          <div className="logo-text" style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>
             <span>Babu Bridal Corner</span>
           </div>
-          <p style={{color: 'var(--color-text-muted)', maxWidth: '400px', margin: '0 auto'}}>
+          <p style={{ color: 'var(--color-text-muted)', maxWidth: '400px', margin: '0 auto' }}>
             Your premium destination for bridal wear, now with an integrated virtual try-on experience.
           </p>
           <div className="footer-links">
