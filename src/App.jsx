@@ -139,17 +139,7 @@ function App() {
         console.warn("Analysis failed, using default.");
       }
 
-      // Step 2: High-Precision Swap with Parallel Batch Scanning
-      const vtonSpaces = [
-        "youplala/IDM-VTON",
-        "ronniechoyy/IDM-VTON-20250428",
-        "maqi/IDM-VTON",
-        "jjlealse/IDM-VTON",
-        "yisol/IDM-VTON",
-        "Shopthelook/IDM-VTON",
-        "z-p-j/IDM-VTON",
-        "TuanPhan/IDM-VTON"
-      ];
+
 
       // Scroll immediately down to show seamless loading
       setTimeout(() => {
