@@ -148,35 +148,15 @@ function App() {
 
       // Step 2: Ultra-Fast Generation using Pollinations (Look-a-like preserved via Gemini detail)
       const finalPrompt = encodeURIComponent(vtonPrompt + ", photorealistic fashion photography, highly detailed, stunning lighting, hyper-realistic, 8k resolution, canon eos");
-      
-      let generatedLocalUrl = null;
-      let retries = 3;
-      
-      while (retries > 0 && !generatedLocalUrl) {
-        try {
-          const pollinationsUrl = `https://image.pollinations.ai/prompt/${finalPrompt}?width=800&height=1066&nologo=true&enhance=false&seed=${Math.floor(Math.random() * 1000000)}`;
-          const imgResponse = await fetch(pollinationsUrl);
-          if (!imgResponse.ok) throw new Error("Network status not ok");
-          const blob = await imgResponse.blob();
-          generatedLocalUrl = URL.createObjectURL(blob);
-        } catch (e) {
-          retries--;
-          await new Promise(r => setTimeout(r, 1000));
-        }
-      }
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${finalPrompt}?width=800&height=1066&nologo=true&enhance=false&seed=${Math.floor(Math.random() * 1000000)}`;
 
-      if (!generatedLocalUrl) {
-        throw new Error("POLLINATIONS_FAIL");
-      }
-
-      setResultImage(generatedLocalUrl);
+      setResultImage(pollinationsUrl);
       setGenerationType('exact');
 
     } catch (err) {
       setError(`We encountered a temporary connection issue. Please ensure your images are clear and try again.`);
       console.error('Final Generation Error:', err);
-    } finally {
-      setIsGenerating(false);
+      setIsGenerating(false); // Only disable here if it crashed, otherwise onLoad handles it
     }
   };
 
@@ -335,13 +315,20 @@ function App() {
             <p>This image was lightning-fast generated to perfectly match your physical appearance, body type, and the uploaded garment.</p>
 
             <div className="result-image-wrapper">
-              {isGenerating && !resultImage ? (
+              {isGenerating ? (
                 <div style={{ width: '100%', height: '600px', backgroundColor: 'var(--color-bg-subtle)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'pulseGold 2s infinite' }}>
                   <div className="loading-spinner" style={{ width: '40px', height: '40px', borderColor: 'rgba(212, 175, 55, 0.3)', borderTopColor: 'var(--color-gold)' }}></div>
                   <p style={{ marginTop: '1rem', color: 'var(--color-gold-dark)', fontWeight: 'bold' }}>Tailoring Your Appearance...</p>
                 </div>
-              ) : (
-                <img src={resultImage} alt="Virtual Try-On Result" style={{ width: '100%', display: 'block', animation: 'fadeIn 0.5s ease-out' }} />
+              ) : null}
+              {resultImage && (
+                <img 
+                  src={resultImage} 
+                  alt="Virtual Try-On Result" 
+                  onLoad={() => setIsGenerating(false)}
+                  onError={() => { setIsGenerating(false); setError('Failed to display the final image from the AI service.'); }}
+                  style={{ width: '100%', display: isGenerating ? 'none' : 'block', animation: 'fadeIn 0.5s ease-out' }} 
+                />
               )}
             </div>
             
