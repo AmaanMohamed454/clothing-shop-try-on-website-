@@ -151,8 +151,18 @@ function App() {
       // Appending a random cache-buster to ensure it updates instead of serving cached
       const pollinationsUrl = `https://image.pollinations.ai/prompt/${finalPrompt}?width=800&height=1066&nologo=true&enhance=false&seed=${Math.floor(Math.random() * 1000000)}`;
       
-      setResultImage(pollinationsUrl);
-      setGenerationType('exact');
+      await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          setResultImage(pollinationsUrl);
+          setGenerationType('exact');
+          resolve();
+        };
+        img.onerror = () => {
+          reject(new Error("Failed to load generated image from AI service."));
+        };
+        img.src = pollinationsUrl;
+      });
 
     } catch (err) {
       setError(`We encountered a temporary connection issue. Please refresh and try again.`);
