@@ -333,9 +333,9 @@ function App() {
             </div>
             
             {resultImage && (
-              <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem'}}>
+              <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center', marginTop: '1.5rem'}}>
                 <button onClick={handleDownload} className="btn-primary" style={{ lineHeight: 'normal', margin: 0 }}>Download Image</button>
-                <button className="btn-secondary" onClick={() => { setResultImage(null); handleScrollToTryOn(); }}>Try Another Outfit</button>
+                <button className="btn-secondary" onClick={() => { setResultImage(null); handleScrollToTryOn(); }} style={{ margin: 0 }}>Try Another Outfit</button>
               </div>
             )}
           </div>
