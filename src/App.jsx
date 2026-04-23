@@ -333,8 +333,8 @@ function App() {
             </div>
             
             {resultImage && (
-              <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center', marginTop: '1.5rem'}}>
-                <button onClick={handleDownload} className="btn-primary" style={{ lineHeight: 'normal', margin: 0 }}>Download Image</button>
+              <div style={{display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center', alignItems: 'center', marginTop: '1.5rem', width: '100%'}}>
+                <button onClick={handleDownload} className="btn-primary" style={{ margin: 0, padding: '0.8rem 2rem', fontSize: '1rem' }}>Download Image</button>
                 <button className="btn-secondary" onClick={() => { setResultImage(null); handleScrollToTryOn(); }} style={{ margin: 0 }}>Try Another Outfit</button>
               </div>
             )}
