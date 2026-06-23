@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For Tania ❤️</title>
+  <!-- Import Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Canvas for Rose Petals, Sparkles, Volumetric Rays -->
+  <canvas id="apology-canvas"></canvas>
+
+  <!-- Mute/Unmute sound toggle -->
+  <button id="sound-toggle" class="sound-btn hide">🔊</button>
+
+  <!-- Phase 1: Intro Card -->
+  <div id="intro-screen" class="glass-card">
+    <h1 class="title">A Message for Tania</h1>
+    <p class="desc">
+      I handcrafted something special for you to say what's in my heart. 
+      Please turn on your sound and tap below to open it.
+    </p>
+    <button id="open-btn" class="glow-btn">
+      <span class="rose-emoji">🌹</span> Open Message
+    </button>
+  </div>
+
+  <!-- Phase 2: Heart Screen (forming and beating) -->
+  <div id="heart-screen" class="hide">
+    <div id="rose-heart" class="heart-container">
+      <!-- Generated rose items will be injected here -->
+      <div id="heart-name" class="heart-name">Tania</div>
+    </div>
+    <div id="heart-tip" class="tip-text">Roses are aligning for you...</div>
+  </div>
+
+  <!-- Phase 3: Apology Card -->
+  <div id="apology-card" class="glass-card hide">
+    <h1 class="card-title">I'm Sorry ❤️</h1>
+    <div class="message-box">
+      <p class="quote">"Every Beat Of My Heart Says I'm Sorry"</p>
+      <p class="text">Tania, I was dumb and naive. I never meant to hurt you, and it kills me to know that I did.</p>
+      <p class="text">Please forgive me. I promise to listen, to care, and to treasure you. You are the most beautiful part of my life.</p>
+      <p class="note">"I Never Meant To Hurt You. Please Forgive Me ❤️"</p>
+    </div>
+    <div class="actions">
+      <button id="forgive-btn" class="glow-btn">Forgive Me ❤️</button>
+      <button id="mad-btn" class="mad-btn">I'm Still Mad 😡</button>
+    </div>
+  </div>
+
+  <!-- Phase 4: Success Screen -->
+  <div id="success-card" class="glass-card hide">
+    <h1 class="success-title">Thank You Tania! ❤️</h1>
+    <div class="rose-bloom">
+      <svg viewBox="0 0 100 100" class="bloom-svg">
+        <defs>
+          <radialGradient id="rose-grad-bloom" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ff3d00" />
+            <stop offset="50%" stop-color="#d50000" />
+            <stop offset="100%" stop-color="#4a0007" />
+          </radialGradient>
+          <linearGradient id="leaf-grad-bloom" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#81c784" />
+            <stop offset="100%" stop-color="#1b5e20" />
+          </linearGradient>
+        </defs>
+        <path d="M50 50 Q43 78 50 96" stroke="#2e7d32" stroke-width="3" fill="none" />
+        <path d="M47 72 C32 70 25 58 35 55 C45 52 47 62 47 72 Z" fill="url(#leaf-grad-bloom)" />
+        <path d="M53 79 C68 77 75 65 65 62 C55 59 53 69 53 79 Z" fill="url(#leaf-grad-bloom)" />
+        <path d="M50 12 C28 12 18 32 38 52 C50 64 50 64 50 64 C50 64 50 64 62 52 C82 32 72 12 50 12 Z" fill="url(#rose-grad-bloom)" />
+        <path d="M50 20 C36 20 28 35 42 47 C50 55 50 55 50 55 C50 55 50 55 58 47 C72 35 64 20 50 20 Z" fill="#ff1744" />
+        <path d="M50 27 C42 27 38 38 46 45 C50 49 50 49 50 49 C50 49 50 49 54 45 C62 38 58 27 50 27 Z" fill="#ff5252" />
+        <circle cx="50" cy="36" r="6" fill="#880e4f" />
+        <circle cx="50" cy="36" r="2.5" fill="#ffe082" class="gold-center" />
+      </svg>
+    </div>
+    <p class="text">You've made me the happiest person alive. I promise to cherish this chance and treat you with all the love and respect you deserve.</p>
+    <p class="quote" style="margin-top: 1.5rem; color: #ffd700;">Yours, Amaan ❤️</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

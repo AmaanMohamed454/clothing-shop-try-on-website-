@@ -1,0 +1,390 @@
+/* Standalone Apology Page Style */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+  background: linear-gradient(180deg, #0a0410 0%, #220b20 30%, #501323 60%, #803020 85%, #aa522b 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#apology-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Glassmorphism Card base */
+.glass-card {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 2.8rem 2.5rem;
+  background: rgba(20, 7, 20, 0.52);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 24px;
+  max-width: 520px;
+  width: 90%;
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), 
+              0 0 40px rgba(255, 20, 147, 0.1),
+              inset 0 0 15px rgba(255, 255, 255, 0.05);
+  animation: cardFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  color: #ffe082;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  letter-spacing: 0.05em;
+}
+
+.desc {
+  font-size: 1.05rem;
+  color: #fce4ec;
+  line-height: 1.7;
+  margin-bottom: 2.8rem;
+  font-weight: 300;
+}
+
+/* Buttons */
+.glow-btn {
+  background: linear-gradient(135deg, #d50000 0%, #880e4f 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #fff;
+  padding: 1.1rem 2.8rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 15px rgba(213, 0, 0, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.glow-btn:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 0 25px rgba(255, 23, 68, 0.65), 
+              0 0 12px rgba(255, 215, 0, 0.35);
+  background: linear-gradient(135deg, #ff1744 0%, #ad1457 100%);
+  border-color: rgba(255, 215, 0, 0.55);
+}
+
+.rose-emoji {
+  font-size: 1.25rem;
+  animation: pulseRotate 2.5s infinite;
+}
+
+/* Sound Button */
+.sound-btn {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.sound-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+/* Heart Scene Screen */
+#heart-screen {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 1.2s ease-in-out;
+}
+
+.heart-container {
+  position: relative;
+  width: 480px;
+  height: 420px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.6s ease;
+}
+
+.heart-container.beating {
+  animation: romanticHeartbeat 1.6s infinite ease-in-out;
+}
+
+.heart-container:hover {
+  transform: scale(1.02);
+}
+
+/* Rose element */
+.rose-item {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform-origin: center center;
+  transition: transform 3.5s cubic-bezier(0.19, 1, 0.22, 1), 
+              opacity 3s ease-in-out;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 50, 0.5));
+}
+
+.rose-item.glowing {
+  filter: drop-shadow(0 0 15px rgba(255, 23, 68, 0.85)) 
+          drop-shadow(0 0 4px rgba(255, 215, 0, 0.55));
+}
+
+.heart-name {
+  position: absolute;
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.85),
+               0 0 30px rgba(255, 0, 0, 0.4),
+               0 2px 5px rgba(0,0,0,0.6);
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+}
+
+.heart-name.visible {
+  opacity: 1;
+}
+
+.tip-text {
+  position: absolute;
+  bottom: 8%;
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.05em;
+  animation: pulseFade 2.5s infinite;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+/* Apology Card Specifics */
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  letter-spacing: 0.05em;
+  background: linear-gradient(to right, #ffe082, #ffd700, #ffe082);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.message-box {
+  margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.quote {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-style: italic;
+  color: #ff8a80;
+  font-weight: 400;
+  text-shadow: 0 0 10px rgba(255, 138, 128, 0.3);
+}
+
+.text {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #ffebee;
+  font-weight: 300;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.note {
+  font-size: 0.95rem;
+  color: rgba(255, 235, 238, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.2rem;
+  margin-top: 0.5rem;
+  line-height: 1.8;
+}
+
+.actions {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 60px;
+}
+
+.mad-btn {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 1.1rem 2.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  z-index: 50;
+}
+
+/* Success Card Specifics */
+.success-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.8rem;
+  color: #a5d6a7;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+}
+
+.rose-bloom {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 1rem auto 2rem;
+  animation: bloomPulse 3s infinite ease-in-out;
+}
+
+.bloom-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 20px #81c784);
+}
+
+/* Hide helper */
+.hide {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Twinkle gold center animation */
+.gold-center {
+  animation: sparkleTwinkle 2s infinite ease-in-out alternate;
+}
+
+/* Animations */
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: scale(0.96) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulseRotate {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(15deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes pulseFade {
+  0% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 0.9; transform: translateY(-4px); }
+  100% { opacity: 0.4; transform: translateY(0); }
+}
+
+@keyframes romanticHeartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.08); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.11); }
+  70% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes sparkleTwinkle {
+  from { opacity: 0.3; filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5)); }
+  to { opacity: 1; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1)); }
+}
+
+@keyframes bloomPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(165, 214, 167, 0.4)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(165, 214, 167, 0.7)); }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 550px) {
+  .heart-container {
+    width: 320px;
+    height: 280px;
+  }
+  .rose-item {
+    width: 28px;
+    height: 28px;
+  }
+  .heart-name {
+    font-size: 1.7rem;
+  }
+  .title {
+    font-size: 1.9rem;
+  }
+  .card-title {
+    font-size: 2.1rem;
+  }
+  .success-title {
+    font-size: 2.2rem;
+  }
+  .text {
+    font-size: 0.95rem;
+  }
+  .quote {
+    font-size: 1.1rem;
+  }
+  .sound-btn {
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+  }
+}
